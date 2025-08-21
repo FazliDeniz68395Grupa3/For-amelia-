@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DLA CIEBIE Amelia</title>
+  <style>
+    :root{
+      --bg: #0f0f13;
+      --card: #11131a;
+      --accent: #e7d6b7; /* delikatny beż */
+      --accent-2: #d6b27d; /* złotawy */
+      --paper: #fffaf1;
+      --shadow: rgba(0,0,0,.35);
+      --text: #e9ecf1;
+    }
+
+    html,body{height:100%;}
+    body{
+      margin:0;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(60vmax 60vmax at 20% 20%, #1a1d27 0%, transparent 60%),
+        radial-gradient(70vmax 70vmax at 80% 80%, #141723 0%, transparent 60%),
+        var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+    }
+
+    .wrap{
+      width:min(520px, 92vw);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:1.25rem;
+      text-align:center;
+      user-select:none;
+    }
+    h1{
+      font-size: clamp(1.1rem, 1.2rem + 1vw, 1.6rem);
+      font-weight:600;
+      letter-spacing:.3px;
+      opacity:.9;
+      margin:0 .5rem;
+    }
+
+    /* KOPERTA */
+    .scene{
+      perspective: 1600px;
+      width:100%;
+      display:grid; place-items:center;
+    }
+
+    .envelope{
+      position:relative;
+      width:min(460px, 92vw);
+      height:320px;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      filter: drop-shadow(0 24px 32px var(--shadow));
+    }
+
+    /* Ciało koperty */
+    .envelope .base{
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, #f0e5d4 0%, #e9d8bd 100%);
+      border-radius: 16px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.2);
+    }
+
+    /* Trójkątne skrzydełka boczne tworzone pseudo-elementami */
+    .base:before, .base:after{
+      content:""; position:absolute; bottom:0; width:60%; height:60%;
+      background: linear-gradient(180deg, #eadcc3 0%, #e1caa2 100%);
+    }
+    .base:before{ left:0; clip-path: polygon(0 100%, 0 0, 100% 100%);} /* lewe skrzydło */
+    .base:after{ right:0; clip-path: polygon(0 100%, 100% 0, 100% 100%);} /* prawe skrzydło */
+
+    /* Klapka (górny trójkąt) */
+    .flap{
+      position:absolute; inset:0; transform-origin: top center;
+      background: linear-gradient(180deg, #f5eada 0%, #e6d0a8 100%);
+      clip-path: polygon(0 0, 100% 0, 50% 62%);
+      border-top-left-radius:16px; border-top-right-radius:16px;
+      transition: transform 900ms cubic-bezier(.2,.8,.2,1), filter 600ms ease;
+      z-index:3;
+    }
+
+    /* List w środku */
+    .letter{
+      position:absolute; left:6%; right:6%; bottom:6%; height:74%;
+      background: var(--paper);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.20), inset 0 0 0 1px rgba(0,0,0,.06);
+      display:grid; place-items:center;
+      padding:1.25rem;
+      transform: translateY(22%) rotateX(6deg);
+      transform-origin: bottom center;
+      transition: transform 900ms cubic-bezier(.2,.8,.2,1), opacity 600ms ease;
+      z-index:2;
+      opacity:.0;
+    }
+
+    .wax-seal{
+      position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+      width:64px; height:64px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #9b3232 0%, #7a0f13 60%, #5a0b10 100%);
+      box-shadow: 0 6px 14px rgba(0,0,0,.35), inset 0 2px 5px rgba(255,255,255,.15);
+      display:grid; place-items:center;
+      color:#f6d4d4; font-weight:700; letter-spacing:.06em;
+      font-size:.78rem;
+      z-index:4;
+      border: 1px solid rgba(0,0,0,.25);
+    }
+    .wax-seal span{ transform:rotate(-12deg); }
+
+    .glint{
+      position:absolute; inset:0; border-radius:16px; overflow:hidden; pointer-events:none;
+    }
+    .glint:before{
+      content:""; position:absolute; inset:-100% -60%; transform:rotate(12deg);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      animation: shine 7s ease-in-out infinite;
+    }
+    @keyframes shine{ 0%{transform:translateX(-100%) rotate(12deg);} 60%{transform:translateX(60%) rotate(12deg);} 100%{transform:translateX(140%) rotate(12deg);} }
+
+    /* Tekst w liście */
+    .message{
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: clamp(1.1rem, 1rem + 1.2vw, 1.6rem);
+      color:#2b2b2b;
+      text-align:center;
+      line-height:1.35;
+    }
+    .message em{ font-family: inherit; font-style: italic; }
+
+    /* Stan otwarcia */
+    .envelope.open .flap{
+      transform: rotateX(160deg);
+      filter: brightness(.94);
+    }
+    .envelope.open .letter{
+      transform: translateY(-4%) rotateX(0deg);
+      opacity:1;
+    }
+
+    /* Drobne wskazówki dla użytkownika */
+    .hint{
+      font-size:.9rem; opacity:.7;
+    }
+
+    /* Przyciski kontrolne (opcjonalnie) */
+    .controls{
+      display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center;
+    }
+    .btn{
+      appearance:none; border:none; cursor:pointer; border-radius:999px;
+      padding:.7rem 1rem; font-weight:600; letter-spacing:.3px;
+      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+      color:#2a2113; box-shadow: 0 8px 20px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.35);
+      transition: transform .15s ease, filter .2s ease;
+    }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+
+    /* Dostępność */
+    .envelope:focus-visible, .btn:focus-visible{
+      outline: 3px dashed #e8d7b1; outline-offset: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Kliknij kopertę, aby odsłonić wiadomość ✨</h1>
+
+    <div class="scene">
+      <div class="envelope" id="envelope" role="button" tabindex="0" aria-pressed="false" aria-label="Otwórz kopertę">
+        <div class="base"></div>
+        <div class="flap"></div>
+        <div class="letter" aria-hidden="true">
+          <div class="message">Dziękuję, że jesteś <em>Amelia</em> 💌</div>
+        </div>
+        <div class="wax-seal" aria-hidden="true"><span>❤</span></div>
+        <div class="glint" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="toggle">Otwórz / Zamknij</button>
+      <div class="hint">albo po prostu kliknij w kopertę</div>
+    </div>
+  </div>
+
+  <script>
+    const envelope = document.getElementById('envelope');
+    const toggleBtn = document.getElementById('toggle');
+
+    function toggleEnvelope(force){
+      const isOpen = envelope.classList.contains('open');
+      const willOpen = force === undefined ? !isOpen : !!force;
+      envelope.classList.toggle('open', willOpen);
+      envelope.setAttribute('aria-pressed', String(willOpen));
+      const letter = envelope.querySelector('.letter');
+      letter.setAttribute('aria-hidden', String(!willOpen));
+    }
+
+    envelope.addEventListener('click', () => toggleEnvelope());
+    toggleBtn.addEventListener('click', () => toggleEnvelope());
+
+    // Obsługa klawiatury (Enter/Space)
+    envelope.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleEnvelope();
+      }
+    });
+
+    // Delikatne wejście elementu na ekran
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          envelope.animate([
+            { transform: 'translateY(12px)', opacity: .0 },
+            { transform: 'translateY(0)', opacity: 1 }
+          ], { duration: 800, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' });
+          observer.disconnect();
+        }
+      });
+    }, { threshold: .4 });
+    observer.observe(envelope);
+  </script>
+</body>
+</html>
